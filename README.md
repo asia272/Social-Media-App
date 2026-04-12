@@ -39,4 +39,3 @@ A modern full-stack **Social Media Web Application** built with **Next.js**, fea
 ### Other Tools
 - React Hot Toast
 
-My own interest
