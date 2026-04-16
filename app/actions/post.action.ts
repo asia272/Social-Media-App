@@ -1,8 +1,10 @@
 'use server';
 
+
 import prisma from "@/lib/prisma";
 import { getDbUserId } from "./user.action";
 import { revalidatePath } from "next/cache";
+import { cache } from "react";
 
 export async function createPost(content: string, image: string) {
     try {
@@ -22,56 +24,56 @@ export async function createPost(content: string, image: string) {
         return { success: false, error: "Failed to create post" }
     }
 }
-export async function getPosts() {
-    try {
-        const posts = await prisma.post.findMany({
-            orderBy: {
-                createdAt: "desc"
+export const getPosts = cache(async()=> {
+  try {
+    const posts = await prisma.post.findMany({
+      orderBy: {
+        createdAt: "desc",
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+            username: true,
+          },
+        },
+        comments: {
+          include: {
+            author: {
+              select: {
+                id: true,
+                username: true,
+                name: true,
+                image: true,
+              },
             },
-            include: {
-                author: {
-                    select: {
-                        id: true,
-                        name: true,
-                        image: true,
-                        username: true
-                    }
-                },
-                comments: {
-                    include: {
-                        author: {
-                            select: {
-                                id: true,
-                                username: true,
-                                name: true,
-                                image: true
-                            }
-                        }
-                    },
-                    orderBy: {
-                        createdAt: "asc"
-                    }
-                },
-                likes: {
-                    select: {
-                        userId: true,
-                    },
-                },
-                _count: {
-                    select: {
-                        likes: true,
-                        comments: true
-                    }
-                }
+          },
+          orderBy: {
+            createdAt: "asc",
+          },
+        },
+        likes: {
+          select: {
+            userId: true,
+          },
+        },
+        _count: {
+          select: {
+            likes: true,
+            comments: true,
+          },
+        },
+      },
+    });
+    return posts;
+  } catch (error) {
+    console.log("Error in get posts:", error);
+    throw new Error("Failed to fetch posts");
+  }
+})
 
-            }
-        })
-        return posts;
-    } catch (error) {
-        console.log("Error in get posts:", error)
-        throw new Error("Failed to fetch posts")
-    }
-}
 export async function toggleLike(postId: string) {
     try {
         const dbUserId = await getDbUserId();

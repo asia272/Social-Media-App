@@ -7,8 +7,14 @@ import { getDbUserId } from "./actions/user.action";
 
 export default async function Home() {
   const user = await currentUser();
+
+  if (!user?.id) {
+    return <div>Please login first</div>;
+  }
   const posts = await getPosts();
   const dbUserId = await getDbUserId();
+
+  
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-10 gap-6">

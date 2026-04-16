@@ -4,15 +4,15 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 
 
-
-
 export async function syncUser() {
     try {
         const clerkUser = await currentUser();
-        const userId = await auth();
-        // 1 Check is user authunticated  
+        // const userId = await auth();
+        const authResult = await auth();
+const userId = authResult.userId;
+        // 1 Checconst clerkId = authResult.userId;k is user authunticated  
         if (!clerkUser || !userId) {
-            return null
+            return [];
         }
         //2    Check if User exist is DB
 

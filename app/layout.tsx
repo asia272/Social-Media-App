@@ -4,7 +4,6 @@ import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import Sidebar from "@/components/Sidebar";
 import { Toaster } from "react-hot-toast";
 
@@ -60,7 +59,6 @@ export default function RootLayout({
                   </div>
                 </div>
               </main>
-              <Footer />
             </div>
             <Toaster />
           </ThemeProvider>
