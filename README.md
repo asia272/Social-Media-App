@@ -2,6 +2,10 @@
 
 A modern full-stack **Social Media Web Application** built with **Next.js**, featuring authentication, posts, comments, likes, follows, notifications, and real-time interactions.
 
+## 🌐 Live Demo
+
+[🚀 View Live Application](https://full-stack-social-media-application.vercel.app/)
+
 ---
 
 ## 📌 Features
