@@ -2,9 +2,8 @@
 
 
 import prisma from "@/lib/prisma";
-import { getDbUserId } from "./user.action";
 import { revalidatePath } from "next/cache";
-import { cache } from "react";
+import { getDbUserId } from "./user.action";
 
 export async function createPost(content: string, image: string) {
     try {
@@ -24,7 +23,7 @@ export async function createPost(content: string, image: string) {
         return { success: false, error: "Failed to create post" }
     }
 }
-export const getPosts = cache(async()=> {
+export const getPosts =async()=> {
   try {
     const posts = await prisma.post.findMany({
       orderBy: {
@@ -72,7 +71,7 @@ export const getPosts = cache(async()=> {
     console.log("Error in get posts:", error);
     throw new Error("Failed to fetch posts");
   }
-})
+}
 
 export async function toggleLike(postId: string) {
     try {
