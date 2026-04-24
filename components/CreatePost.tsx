@@ -66,18 +66,19 @@ const CreatePost = () => {
           </div>
 
           {/* image upload */}
-          {(showImageUpload || image) && (
-            <div className="border rounded-lg p-4">
-              <ImageUpload
-                endpoint="postImage"
-                value={image}
-                onChange={(url) => {
-                  setImage(url);
-                  if (!url) setShowImageUpload(false);
-                }}
-              />
-            </div>
-          )}
+    {showImageUpload && (
+          <div className="border rounded-lg p-4 mt-4">
+            <ImageUpload
+              key={image || "empty"} 
+              endpoint="postImage"
+              value={image}
+              onChange={(url) => {
+                setImage(url);
+                if (!url) setShowImageUpload(false);
+              }}
+            />
+          </div>
+        )}
           <div className="flex items-center justify-between border-t pt-4">
             <div className="flex space-x-2">
               <Button
