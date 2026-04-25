@@ -8,9 +8,16 @@ import { getDbUserId } from "./actions/user.action";
 export default async function Home() {
   const user = await currentUser();
 
-  if (!user?.id) {
-    return <div>Please login first</div>;
-  }
+if (!user?.id) {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="bg-white dark:bg-gray-900 shadow-lg rounded-2xl p-8 text-center border w-[320px]">
+        <h2 className="text-xl font-semibold mb-2">Login Required</h2>
+        <p className="text-gray-500">Please login first to continue</p>
+      </div>
+    </div>
+  );
+}
   const posts = await getPosts();
   const dbUserId = await getDbUserId();
 
