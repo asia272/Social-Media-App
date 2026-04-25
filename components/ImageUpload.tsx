@@ -9,7 +9,12 @@ interface ImageUploadProps {
   setIsUploading: (loading: boolean) => void;
 }
 
-const ImageUpload = ({ endpoint, onChange, value, setIsUploading }: ImageUploadProps) => {
+const ImageUpload = ({
+  endpoint,
+  onChange,
+  value,
+  setIsUploading,
+}: ImageUploadProps) => {
   return (
     <div className="space-y-4">
       {/* Preview */}
@@ -34,7 +39,7 @@ const ImageUpload = ({ endpoint, onChange, value, setIsUploading }: ImageUploadP
       <UploadButton
         endpoint={endpoint}
         onUploadBegin={() => {
-          setIsUploading(true); 
+          setIsUploading(true);
         }}
         onClientUploadComplete={(res) => {
           const url = res?.[0]?.url;
@@ -43,7 +48,12 @@ const ImageUpload = ({ endpoint, onChange, value, setIsUploading }: ImageUploadP
         }}
         onUploadError={(error: Error) => {
           console.error("Upload error:", error);
-            setIsUploading(false);
+          setIsUploading(false);
+        }}
+        appearance={{
+          button:
+            "w-full bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-white dark:text-black transition-colors [&_*]:text-current",
+          allowedContent: "text-xs text-muted-foreground",
         }}
       />
     </div>

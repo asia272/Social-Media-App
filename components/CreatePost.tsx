@@ -17,7 +17,7 @@ const CreatePost = () => {
   const [image, setImage] = useState("");
   const [isPosting, setIsPosting] = useState(false);
   const [showImageUpload, setShowImageUpload] = useState(false);
-const [isUploading, setIsUploading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   //server action
   const handleSubmit = async () => {
     if (!content.trim() && !image) return;
