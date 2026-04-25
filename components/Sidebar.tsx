@@ -1,15 +1,13 @@
 
 
-import { currentUser } from '@clerk/nextjs/server'
-import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
-import { SignInButton, SignUpButton } from '@clerk/nextjs';
-import { Button } from './ui/button';
 import { getUserByClerkId, syncUser } from '@/app/actions/user.action';
+import { currentUser } from '@clerk/nextjs/server';
+import { LinkIcon, MapPinIcon } from 'lucide-react';
 import Link from 'next/link';
 import { Avatar, AvatarImage } from './ui/avatar';
+import { Card, CardContent } from './ui/card';
 import { Separator } from './ui/separator';
-import { LinkIcon, MapPinIcon } from 'lucide-react';
-
+import UnAuthenticatedSidebar from './UnauthenticatedSidebar ';
 
 const Sidebar = async () => {
     const authUser = await currentUser();
@@ -82,27 +80,3 @@ const Sidebar = async () => {
 export default Sidebar
 
 
-const UnAuthenticatedSidebar = () => (
-    <div className="sticky top-20">
-        <Card>
-            <CardHeader>
-                <CardTitle className="text-center text-xl font-semibold">Welcome Back!</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <p className="text-center text-muted-foreground mb-4">
-                    Login to access your profile and connect with others.
-                </p>
-                <SignInButton mode="modal">
-                    <Button className="w-full" variant="outline">
-                        Login
-                    </Button>
-                </SignInButton>
-                <SignUpButton mode="modal">
-                    <Button className="w-full mt-2" variant="default">
-                        Sign Up
-                    </Button>
-                </SignUpButton>
-            </CardContent>
-        </Card>
-    </div>
-);
