@@ -1,17 +1,16 @@
 "use client"
-import { createComment, deletePost, getPosts, toggleLike } from '@/app/actions/post.action';
+import { createComment, deleteComment, deletePost, getPosts, toggleLike, updateComment } from '@/app/actions/post.action';
 import { SignInButton, useUser } from "@clerk/nextjs";
 import { formatDistanceToNow } from "date-fns";
-import { HeartIcon, LogInIcon, MessageCircleIcon, SendIcon } from 'lucide-react';
+import { Check, HeartIcon, Loader2, LogInIcon, MessageCircleIcon, MoreVertical, Pencil, SendIcon, Trash2, X } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect,useRef } from 'react';
 import toast from 'react-hot-toast';
 import { DeleteAlertDialog } from './DeleteAlertDialog';
 import { Avatar, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
 import { Textarea } from './ui/textarea';
-
 
 type Posts = Awaited<ReturnType<typeof getPosts>>
 type Post = Posts[0]
@@ -22,12 +21,16 @@ function PostCard({ post, dbUserId }: { post: Post; dbUserId: string | null }) {
     const [newComment, setNewComment] = useState("")
     const [isDeleting, setIsDeleting] = useState(false);
     const [isCommenting, setIsCommenting] = useState(false);
-    const [isLiking, setIsLiking] = useState(false);
-    const [hasLiked, setHasLiked] = useState(post.likes.some((like) => like.userId === dbUserId))
+  const [isLiking, setIsLiking] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [hasLiked, setHasLiked] = useState(post.likes.some((like) => like.userId === dbUserId))
     const [optimisticLikes, setOptimisticLikes] = useState(post._count.likes);
     const [showComments, setShowComments] = useState(false);
 const [expanded, setExpanded] = useState(false);
-  
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editText, setEditText] = useState("");
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+const menuRef = useRef<HTMLDivElement | null>(null);
 
     const handleLike = async (postId: string) => {
         if (isLiking) return
@@ -72,6 +75,54 @@ const [expanded, setExpanded] = useState(false);
             setIsCommenting(false);
         }
     }
+  const handleDeleteComment = async (commentId: string) => {
+    try {
+      const result = await deleteComment(commentId);
+
+      if (result?.success) {
+        toast.success("Comment deleted");
+      } else {
+        toast.error(result?.error || "Failed to delete");
+      }
+    } catch (error) {
+      toast.error("Something went wrong");
+    }
+  };
+const handleUpdateComment = async (commentId: string) => {
+  if (!editText.trim() || isUpdating) return;
+
+  try {
+    setIsUpdating(true);
+
+    const result = await updateComment(commentId, editText);
+
+    if (result?.success) {
+      toast.success("Comment updated");
+      setEditingCommentId(null);
+      setEditText("");
+    } else {
+      toast.error(result?.error || "Failed to update");
+    }
+  } catch {
+    toast.error("Something went wrong");
+  } finally {
+    setIsUpdating(false);
+  }
+};
+  // For outside click of comment menu
+useEffect(() => {
+  function handleClickOutside(event: MouseEvent) {
+    if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      setOpenMenuId(null);
+    }
+  }
+
+  document.addEventListener("mousedown", handleClickOutside);
+
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+  };
+}, []);
     return (
       <Card className="overflow-hidden">
         <CardContent className="p-4 sm:p-6">
@@ -193,30 +244,123 @@ const [expanded, setExpanded] = useState(false);
                 <div className="space-y-4">
                   {/* DISPLAY COMMENTS */}
                   {post.comments.map((comment) => (
-                    <div key={comment.id} className="flex space-x-3">
-                      <Avatar className="size-8 flex-shrink-0">
-                        <AvatarImage
-                          src={comment.author.image ?? "/avatar.png"}
-                        />
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                          <span className="font-medium text-sm">
-                            {comment.author.name}
-                          </span>
-                          <span className="text-sm text-muted-foreground">
-                            @{comment.author.username}
-                          </span>
-                          <span className="text-sm text-muted-foreground">
-                            ·
-                          </span>
-                          <span className="text-sm text-muted-foreground">
-                            {formatDistanceToNow(new Date(comment.createdAt))}{" "}
-                            ago
-                          </span>
+                    <div
+                      key={comment.id}
+                      className="flex items-start justify-between gap-2"
+                    >
+                      {/* LEFT SIDE */}
+                      <div className="flex space-x-3 flex-1">
+                        <Avatar className="size-8">
+                          <AvatarImage
+                            src={comment.author.image ?? "/avatar.png"}
+                          />
+                        </Avatar>
+
+                        <div className="flex-1">
+                          <div className="flex flex-wrap items-center gap-2 text-sm">
+                            <span className="font-medium">
+                              {comment.author.name}
+                            </span>
+                            <span className="text-muted-foreground">
+                              @{comment.author.username}
+                            </span>
+                            <span className="text-muted-foreground">·</span>
+                            <span className="text-muted-foreground">
+                              {formatDistanceToNow(new Date(comment.createdAt))}{" "}
+                              ago
+                            </span>
+                          </div>
+
+                          {/* EDIT MODE */}
+                          {editingCommentId === comment.id ? (
+                            <>
+                              <Textarea
+                                value={editText}
+                                onChange={(e) => setEditText(e.target.value)}
+                                className="mt-1 resize-none"
+                              />
+                              <div className="flex gap-2 mt-2">
+                                <Button
+                                  size="sm"
+                                  onClick={() =>
+                                    handleUpdateComment(comment.id)
+                                  }
+                                  disabled={isUpdating || !editText.trim()}
+                                  className="flex items-center gap-2 h-9 px-4"
+                                >
+                                  {isUpdating ? (
+                                    <>
+                                      <Loader2 className="size-4 animate-spin" />
+                                      Saving...
+                                    </>
+                                  ) : (
+                                    "Save"
+                                  )}
+                                </Button>
+
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => setEditingCommentId(null)}
+                                  className="flex items-center gap-2 h-9 px-3 border-muted text-muted-foreground hover:bg-muted hover:text-foreground transition"
+                                >
+                                  Cancel
+                                </Button>
+                              </div>
+                            </>
+                          ) : (
+                            <p className="text-sm break-words">
+                              {comment.content}
+                            </p>
+                          )}
                         </div>
-                        <p className="text-sm break-words">{comment.content}</p>
                       </div>
+
+                      {/* RIGHT SIDE*/}
+                      {dbUserId === comment.author.id && (
+                        <div
+                          ref={openMenuId === comment.id ? menuRef : null}
+                          className="relative"
+                        >
+                          <button
+                            onClick={() =>
+                              setOpenMenuId(
+                                openMenuId === comment.id ? null : comment.id,
+                              )
+                            }
+                            className="p-1 rounded-full hover:bg-muted transition"
+                          >
+                            <MoreVertical className="size-5" />
+                          </button>
+
+                          {openMenuId === comment.id && (
+                            <div className="absolute right-0 mt-2 w-36 rounded-md border bg-popover text-popover-foreground shadow-md z-50">
+                              <button
+                                onClick={() => {
+                                  setEditingCommentId(comment.id);
+                                  setEditText(comment.content);
+                                  setOpenMenuId(null);
+                                }}
+                                className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-muted"
+                              >
+                                <Pencil className="size-4" />
+                                Edit
+                              </button>
+
+                              <button
+                                onClick={() => {
+                                  handleDeleteComment(comment.id);
+                                  setOpenMenuId(null);
+                                }}
+                                className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-500 hover:bg-muted"
+                              >
+                                <Trash2 className="size-4" />
+                                Delete
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
